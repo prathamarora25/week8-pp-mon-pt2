@@ -1,11 +1,12 @@
 import { Link, useNavigate } from "react-router-dom";
+import { getUser, logoutUser } from "../utils/auth";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = getUser();
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
+    logoutUser();
     navigate("/");
   };
 
@@ -15,7 +16,7 @@ const Navbar = () => {
 
       <div className="links">
         <Link to="/">Home</Link>
-        <Link to="/add-workout">Add Workout</Link>
+        {user && <Link to="/add-workout">Add Workout</Link>}
 
         {user ? (
           <>

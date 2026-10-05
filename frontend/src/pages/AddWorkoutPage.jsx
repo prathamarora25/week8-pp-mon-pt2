@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { getUser, logoutUser } from "../utils/auth";
 
 const AddWorkoutPage = () => {
   const [title, setTitle] = useState("");
@@ -20,17 +21,28 @@ const AddWorkoutPage = () => {
       price: Number(price),
     };
 
+    const user = getUser();
+
     try {
       const response = await fetch("/api/workouts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${user?.token}`,
         },
         body: JSON.stringify(workout),
       });
 
+      // token expired / invalid / user deleted -> log out and go to login
+      if (response.status === 401) {
+        logoutUser();
+        navigate("/login");
+        return;
+      }
+
       if (!response.ok) {
-        throw new Error("Failed to add workout");
+        const data = await response.json();
+        throw new Error(data.error || "Failed to add workout");
       }
 
       navigate("/");
@@ -87,4 +99,4 @@ const AddWorkoutPage = () => {
   );
 };
 
-export default AddWorkoutPage;
+export default AddWorkoutPage;

@@ -1,9 +1,11 @@
 import {useEffect, useState} from 'react';
-import {useParams, useNavigate} from 'react-router-dom';
+import {useParams, useNavigate, Link} from 'react-router-dom';
+import { getUser, logoutUser } from '../utils/auth';
 
 const WorkoutPage  = () => {
   const {id}=useParams();
   const navigate = useNavigate();
+  const user = getUser();
 
   const [workout, setWorkout] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,10 +36,22 @@ const WorkoutPage  = () => {
     try {
       const response = await fetch(`/api/workouts/${id}`, {
         method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${user?.token}`,
+        },
       });
 
+      // token expired / invalid / user deleted -> log out and go to login
+      if (response.status === 401) {
+        logoutUser();
+        navigate("/login");
+        return;
+      }
+
+      // 204 No Content has no body, so only read JSON on errors
       if (!response.ok) {
-        throw new Error("Failed to delete workout");
+        const data = await response.json();
+        throw new Error(data.error || "Failed to delete workout");
       }
 
       navigate("/");
@@ -60,10 +74,19 @@ const WorkoutPage  = () => {
       <p>Difficulty: {workout.difficulty}</p>
       <p>{workout.description}</p>
       <p>Price: ${workout.price}</p>
-      <button onClick={() => navigate(`/edit-workout/${id}`)}>
-        Edit
-      </button>
-      <button onClick={deleteWorkout}>Delete</button>
+
+      {user ? (
+        <>
+          <button onClick={() => navigate(`/edit-workout/${id}`)}>
+            Edit
+          </button>
+          <button onClick={deleteWorkout}>Delete</button>
+        </>
+      ) : (
+        <p>
+          <Link to="/login">Log in</Link> to edit or delete this workout.
+        </p>
+      )}
     </div>
   );
 };

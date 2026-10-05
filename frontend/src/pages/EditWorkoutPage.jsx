@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { getUser, logoutUser } from "../utils/auth";
 
 const EditWorkoutPage = () => {
   const { id } = useParams();
@@ -52,11 +53,14 @@ const EditWorkoutPage = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    const user = getUser();
+
     try {
       const response = await fetch(`/api/workouts/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${user?.token}`,
         },
         body: JSON.stringify({
           title: workout.title,
@@ -65,6 +69,13 @@ const EditWorkoutPage = () => {
           price: Number(workout.price),
         }),
       });
+
+      // token expired / invalid / user deleted -> log out and go to login
+      if (response.status === 401) {
+        logoutUser();
+        navigate("/login");
+        return;
+      }
 
       if (!response.ok) {
         const data = await response.json();

@@ -9,6 +9,8 @@ import Navbar from "./components/Navbar";
 import NotFoundPage from "./pages/NotFoundPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
+import RequireAuth from "./components/RequireAuth";
+
 const App = () => {
   return (
     <div className="App">
@@ -19,11 +21,25 @@ const App = () => {
             
             <Route path="/login" element={<LoginPage />} />
             <Route path="/" element={<Home />} />
-            <Route path="/add-workout" element={<AddWorkoutPage />} />
+            <Route
+              path="/add-workout"
+              element={
+                <RequireAuth>
+                  <AddWorkoutPage />
+                </RequireAuth>
+              }
+            />
             <Route path="/workouts/:id" element={<WorkoutPage />} />
-            <Route path="/edit-workout/:id" element={<EditWorkoutPage />} />
-	    <Route path="/signup" element={<SignupPage />} />
-	    <Route path="*" element={<NotFoundPage />} />
+            <Route
+              path="/edit-workout/:id"
+              element={
+                <RequireAuth>
+                  <EditWorkoutPage />
+                </RequireAuth>
+              }
+            />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </div>
       </BrowserRouter>
